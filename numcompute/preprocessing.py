@@ -1,7 +1,7 @@
 import numpy as np
 
 def _validate_array(X: np.ndarray, name: str = "X", check_nan: bool = False) -> np.ndarray:
-    arr = np.ndarray(X, dtype=float)
+    arr = np.asarray(X, dtype=float)
     if arr.ndim != 2:
       raise ValueError(f"{name} must be 2D.")
     if arr.size == 0:
@@ -23,8 +23,8 @@ class StandardScaler:
       """
       Initialize StandardScaler with no learned parameters.
       """
-      self.mean = None
-      self.std = None
+      self.mean_ = None
+      self.std_ = None
         
     def fit(self, X: np.ndarray) -> "StandardScaler":
       """
@@ -33,8 +33,9 @@ class StandardScaler:
       :return: self
       """
       arr = _validate_array(X, name="X", check_nan=True)
-      self.mean_ = np.mean(arr, axis=0) 
-      std = np.std(arr, axis=0)    
+      self.mean_ = np.mean(arr, axis=0)
+      std = np.std(arr, axis=0)
+      self.std_ = np.where(std == 0.0, 1.0, std)    
       return self                    
 
     def transform(self, X: np.ndarray) -> np.ndarray:
@@ -48,11 +49,11 @@ class StandardScaler:
       arr = _validate_array(X, name="X", check_nan=True)
       if arr.shape[1] != self.mean_.shape[0]:
           raise ValueError(f"Expected {self.mean_.shape[0]} features, got {arr.shape[1]}.")
-      X_out = (arr - self.mean)/self.std
+      X_out = (arr - self.mean_)/self.std_
       return X_out
     
 
-    def fit_transform(self,X):
+    def fit_transform(self,X: np.ndarray) -> np.ndarray:
       """
       Fit to data then transform it in one step.
       :param X: 2D training data array of shape (n_samples, n_features).
