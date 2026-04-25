@@ -42,3 +42,12 @@ def test_standard_scaler_wrong_features_raises() -> None:
     scaler.fit(X_train)
     with pytest.raises(ValueError, match="features"):
         scaler.transform(X_test)
+
+def test_minmax_scaler_default_range() -> None:
+    X = np.array([[2.0, 4.0],
+                  [6.0, 8.0],
+                  [10.0, 12.0]])
+    scaler = MinMaxScaler()
+    X_scaled = scaler.fit_transform(X)
+    assert np.allclose(np.min(X_scaled, axis=0), 0.0)
+    assert np.allclose(np.max(X_scaled, axis=0), 1.0)
