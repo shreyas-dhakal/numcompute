@@ -52,6 +52,7 @@ class StandardScaler:
       X_out = (arr - self.mean_)/self.std_
       return X_out
     
+    
 
     def fit_transform(self,X: np.ndarray) -> np.ndarray:
       """
