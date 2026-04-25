@@ -18,10 +18,6 @@ Functions:
 import numpy as np
 
 
-# -----
-# Mean
-# -----
-
 def mean(x, axis=None, ignore_nan=True):
     """
     Compute mean.
@@ -44,10 +40,6 @@ def mean(x, axis=None, ignore_nan=True):
     else:
         return np.mean(x, axis=axis)
 
-
-# ---------
-# Variance
-# ---------
 
 def variance(x, axis=None, ddof=0, ignore_nan=True):
     """
@@ -72,10 +64,6 @@ def variance(x, axis=None, ddof=0, ignore_nan=True):
     else:
         return np.var(x, axis=axis, ddof=ddof)
 
-
-# ------------------------------------
-# Welford (Streaming Mean & Variance)
-# ------------------------------------
 
 def welford(x):
     """
@@ -114,10 +102,6 @@ def welford(x):
     return mean, variance
 
 
-# ----------
-# Histogram
-# ----------
-
 def histogram(x, bins=10, range=None):
     """
     Compute histogram.
@@ -140,9 +124,6 @@ def histogram(x, bins=10, range=None):
     return hist, bin_edges
 
 
-# --------
-# Quantile
-# --------
 def quantile(x, q, axis=None):
     """
     Compute quantiles.

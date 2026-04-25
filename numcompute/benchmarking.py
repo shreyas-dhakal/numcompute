@@ -15,10 +15,6 @@ import time
 import numpy as np
 
 
-# ---------------------
-# Core Timing Function
-# ---------------------
-
 def benchmark(func, *args, repeat=5, warmup=1):
     """
     Benchmark a function by measuring execution time.
@@ -46,10 +42,6 @@ def benchmark(func, *args, repeat=5, warmup=1):
     return min(times)  # best time
 
 
-# -------------------
-# Comparison Utility
-# -------------------
-
 def compare_functions(funcs, args, labels=None, repeat=5):
     """
     Compare multiple functions on the same input.
@@ -75,10 +67,6 @@ def compare_functions(funcs, args, labels=None, repeat=5):
     return results
 
 
-# ---------------------
-# Pretty Print Results
-# ---------------------
-
 def print_results(results, title="Benchmark Results"):
     """
     Print formatted benchmark results.
@@ -97,11 +85,6 @@ def print_results(results, title="Benchmark Results"):
     print("-" * 40)
 
 
-# --------------------------------------------------
-# Example Benchmarks (Required for Demo)
-# --------------------------------------------------
-
-# --- Mean ---
 def mean_loop(x):
     total = 0.0
     for val in x:
@@ -113,7 +96,6 @@ def mean_vectorised(x):
     return np.mean(x)
 
 
-# --- Top-k ---
 def top_k_loop(x, k):
     return sorted(x)[-k:]
 
@@ -122,10 +104,6 @@ def top_k_vectorised(x, k):
     idx = np.argpartition(x, -k)[-k:]
     return x[idx]
 
-
-# -------------------
-# Run All Benchmarks
-# -------------------
 
 def run_all_benchmarks(n=1_000_000, k=10, seed=42):
     """
@@ -144,26 +122,20 @@ def run_all_benchmarks(n=1_000_000, k=10, seed=42):
     print(f"Top-k: {k}")
     print(f"Seed: {seed}")
 
-    # --- Mean ---
     mean_results = compare_functions(
         funcs=[mean_vectorised, mean_loop],
         args=(x,),
-        labels=["Mean (NumPy)", "Mean (Loop)"]
+        labels=["Mean (NumPy)", "Mean (Loop)"],
     )
     print_results(mean_results, title="Mean Benchmark")
 
-    # --- Top-k ---
     topk_results = compare_functions(
         funcs=[top_k_vectorised, top_k_loop],
         args=(x, k),
-        labels=["Top-k (NumPy)", "Top-k (Loop)"]
+        labels=["Top-k (NumPy)", "Top-k (Loop)"],
     )
     print_results(topk_results, title="Top-k Benchmark")
 
-
-# -----------------------
-# Entry Point (optional)
-# -----------------------
 
 if __name__ == "__main__":
     run_all_benchmarks()

@@ -1,64 +1,107 @@
-""" 
-
-### `preprocessing.py`
-- Implement:
-  - `StandardScaler` (z-score standardization)
-  - `MinMaxScaler` (scale to a given range)
-  - `OneHotEncoder` (for categorical variables)
-  - *(Optional)* Simple imputer to replace NaN with a constant
-- API:
-  - `fit(X) -> self`
-  - `transform(X) -> X_out`
-  - `fit_transform(X) -> X_out`
-- Fully vectorized using NumPy; avoid Python loops
-
-"""
-
 import numpy as np
+from typing import Sequence, Tuple
 
-#Formula: z = (x - mean) / std
+
+def _as_2d_array(X: np.ndarray, name: str = "X") -> np.ndarray:
+    arr = np.asarray(X)
+    if arr.ndim != 2:
+        raise ValueError(f"{name} must be a 2D array.")
+    if arr.shape[0] == 0 or arr.shape[1] == 0:
+        raise ValueError(f"{name} must be non-empty along both axes.")
+    return arr
+
+
 class StandardScaler:
-    def __init__(self):
-      self.mean = None
-      self.std = None
-        
+    """Scale features to zero mean and unit variance column-wise."""
 
-    #scaler = StandardScaler()
-    #scaler.fit(X_train)
-    def fit(self,X):
-      #compute and store mean,std from X 
-      #axis = 0, hence computer per column
-      self.mean = np.mean(X,axis=0)  #stores mean of each column
-      self.std = np.std(X,axis=0)    #stores standard deviation column
-      return self                    #to allow fit().transform()
+    def __init__(self) -> None:
+        self.mean_: np.ndarray | None = None
+        self.scale_: np.ndarray | None = None
 
-    def transform(self,X):
-      #z-score formula using stored mean and std
-      X_out = (X - self.mean)/self.std
-      return X_out
-    
+    def fit(self, X: np.ndarray) -> "StandardScaler":
+        x_arr = _as_2d_array(X).astype(float)
+        self.mean_ = np.mean(x_arr, axis=0)
+        std = np.std(x_arr, axis=0)
+        self.scale_ = np.where(std == 0.0, 1.0, std)
+        return self
 
-    def fit_transform(self,X):
-      #fit and transform in one step
-      #same as calling fit(X) and transform(X)
-      X_out = self.fit(X).transform(X)
-      return X_out
-        
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        if self.mean_ is None or self.scale_ is None:
+            raise ValueError("StandardScaler must be fitted before transform.")
+
+        x_arr = _as_2d_array(X).astype(float)
+        if x_arr.shape[1] != self.mean_.shape[0]:
+            raise ValueError("X has different number of features than in fit.")
+        return (x_arr - self.mean_) / self.scale_
+
+    def fit_transform(self, X: np.ndarray) -> np.ndarray:
+        return self.fit(X).transform(X)
 
 
-#test
-X_train = np.array([[2, 4],
-                    [6, 8],
-                    [10, 12]])
+class MinMaxScaler:
+    """Scale features to a target range column-wise."""
 
-scaler = StandardScaler()
-scaler.fit(X_train)
+    def __init__(self, feature_range: Tuple[float, float] = (0.0, 1.0)) -> None:
+        lo, hi = feature_range
+        if hi <= lo:
+            raise ValueError("feature_range must satisfy max > min.")
 
-print(scaler.mean)
-print(scaler.std)
+        self.feature_range = (float(lo), float(hi))
+        self.data_min_: np.ndarray | None = None
+        self.data_max_: np.ndarray | None = None
+        self.data_range_: np.ndarray | None = None
 
-X_scaled = scaler.transform(X_train)
-print(X_scaled)
+    def fit(self, X: np.ndarray) -> "MinMaxScaler":
+        x_arr = _as_2d_array(X).astype(float)
+        self.data_min_ = np.min(x_arr, axis=0)
+        self.data_max_ = np.max(x_arr, axis=0)
+        ranges = self.data_max_ - self.data_min_
+        self.data_range_ = np.where(ranges == 0.0, 1.0, ranges)
+        return self
 
-print(np.mean(X_scaled, axis=0))  # [0, 0]
-print(np.std(X_scaled, axis=0))   # [1, 1]
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        if self.data_min_ is None or self.data_range_ is None:
+            raise ValueError("MinMaxScaler must be fitted before transform.")
+
+        x_arr = _as_2d_array(X).astype(float)
+        if x_arr.shape[1] != self.data_min_.shape[0]:
+            raise ValueError("X has different number of features than in fit.")
+
+        lo, hi = self.feature_range
+        scaled_01 = (x_arr - self.data_min_) / self.data_range_
+        return scaled_01 * (hi - lo) + lo
+
+    def fit_transform(self, X: np.ndarray) -> np.ndarray:
+        return self.fit(X).transform(X)
+
+
+class OneHotEncoder:
+    """One-hot encode categorical columns of a 2D input array."""
+
+    def __init__(self) -> None:
+        self.categories_: list[np.ndarray] | None = None
+
+    def fit(self, X: np.ndarray) -> "OneHotEncoder":
+        x_arr = _as_2d_array(X)
+        self.categories_ = [np.unique(x_arr[:, i]) for i in range(x_arr.shape[1])]
+        return self
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        if self.categories_ is None:
+            raise ValueError("OneHotEncoder must be fitted before transform.")
+
+        x_arr = _as_2d_array(X)
+        if x_arr.shape[1] != len(self.categories_):
+            raise ValueError("X has different number of features than in fit.")
+
+        blocks = []
+        for i, cats in enumerate(self.categories_):
+            block = (x_arr[:, [i]] == cats.reshape(1, -1)).astype(float)
+            blocks.append(block)
+        return np.concatenate(blocks, axis=1)
+
+    def fit_transform(self, X: np.ndarray) -> np.ndarray:
+        return self.fit(X).transform(X)
+
+
+__all__ = ["StandardScaler", "MinMaxScaler", "OneHotEncoder"]
