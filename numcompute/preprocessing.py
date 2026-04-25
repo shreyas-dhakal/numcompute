@@ -1,20 +1,17 @@
-""" 
-
-### `preprocessing.py`
-- Implement:
-  - `StandardScaler` (z-score standardization)
-  - `MinMaxScaler` (scale to a given range)
-  - `OneHotEncoder` (for categorical variables)
-  - *(Optional)* Simple imputer to replace NaN with a constant
-- API:
-  - `fit(X) -> self`
-  - `transform(X) -> X_out`
-  - `fit_transform(X) -> X_out`
-- Fully vectorized using NumPy; avoid Python loops
-
-"""
-
 import numpy as np
+
+def _validate_array(X: np.ndarray, name: str = "X", check_nan: bool = False) -> np.ndarray:
+    arr = np.ndarray(X, dtype=float)
+    if arr.ndim != 2:
+      raise ValueError(f"{name} must be 2D.")
+    if arr.size == 0:
+        raise ValueError(f"{name} cannot be empty.")
+    if check_nan and np.any(np.isnan(arr)):
+        raise ValueError(f"{name} contains NaN values. Use SimpleImputer first.")
+    return arr
+
+
+
 
 #Formula: z = (x - mean) / std
 class StandardScaler:
@@ -22,31 +19,36 @@ class StandardScaler:
     Standardize features by removing mean and scaling to unit variance.
     Formula : z = (X - u) / s
     """
-    def __init__(self):
+    def __init__(self) -> None:
       """
       Initialize StandardScaler with no learned parameters.
       """
       self.mean = None
       self.std = None
         
-    def fit(self,X):
+    def fit(self, X: np.ndarray) -> "StandardScaler":
       """
       Compute and store mean and std from training data.
       :param X: 2D training data array of shape (n_samples, n_features).
       :return: self
       """
-     
-      self.mean = np.mean(X,axis=0)  
-      self.std = np.std(X,axis=0)    
+      arr = _validate_array(X, name="X", check_nan=True)
+      self.mean_ = np.mean(arr, axis=0) 
+      std = np.std(arr, axis=0)    
       return self                    
 
-    def transform(self,X):
+    def transform(self, X: np.ndarray) -> np.ndarray:
       """
       Apply z-score standardization using stored mean and std.
       :param X: 2D array of shape (n_samples, n_features).
       :return: Standardized array of same shape as X.
       """
-      X_out = (X - self.mean)/self.std
+      if self.mean_ is None or self.std_ is None:
+            raise ValueError("StandardScaler is not fitted yet. Call fit() first.")
+      arr = _validate_array(X, name="X", check_nan=True)
+      if arr.shape[1] != self.mean_.shape[0]:
+          raise ValueError(f"Expected {self.mean_.shape[0]} features, got {arr.shape[1]}.")
+      X_out = (arr - self.mean)/self.std
       return X_out
     
 
@@ -65,14 +67,18 @@ class MinMaxScaler():
   Scale features to a given range using min-max normalization.
   Formula: z = (X - min) / (max - min) * (b - a) + a
   """
-  def __init__(self,feature_range: tuple =(0,1)):
+  def __init__(self, feature_range: tuple[float, float] = (0.0, 1.0)) -> None:
     """
     Initialize MinMaxScaler with desired output range.
     :param feature_range: Tuple (a, b) defining the target range (default: (0, 1))
     """
-    self.max_ = None
-    self.min_ = None
-    self.feature_range = feature_range
+    a, b = feature_range
+    if b <= a:
+            raise ValueError(f"feature_range max ({b}) must be greater than min ({a}).")
+    self.feature_range = (float(a), float(b))
+    self.min_ = None    
+    self.max_ = None    
+    self.range_ = None
   
   def fit(self,X: np.ndarray) -> "MinMaxScaler":
     """
@@ -80,8 +86,11 @@ class MinMaxScaler():
     :param X: 2D training data array of shape (n_samples, n_features).
     :return: self
     """
-    self.max_ = np.max(X,axis=0)
-    self.min_ = np.min(X,axis=0)
+    arr = _validate_array(X, name="X", check_nan=True)
+    self.min_ = np.min(arr, axis=0)
+    self.max_ = np.max(arr, axis=0)
+    ranges = self.max_ - self.min_
+    self.range_ = np.where(ranges == 0.0, 1.0, ranges)
     return self
   
  
@@ -91,8 +100,13 @@ class MinMaxScaler():
     :param X: 2D array of shape (n_samples, n_features).
     :return: Scaled array of same shape as X.
     """
+    if self.min_ is None or self.range_ is None:
+        raise ValueError("MinMaxScaler is not fitted yet. Call fit() first.")
+    arr = _validate_array(X, name="X", check_nan=True)
+    if arr.shape[1] != self.min_.shape[0]:
+            raise ValueError(f"Expected {self.min_.shape[0]} features, got {arr.shape[1]}.")
     a,b = self.feature_range
-    X_out = (X - self.min_) / (self.max_ - self.min_) * (b - a) + a
+    X_out = (arr - self.min_) / (self.max_ - self.min_) * (b - a) + a
     return X_out
 
   def fit_transform(self,X:np.ndarray) -> np.ndarray:
@@ -110,7 +124,7 @@ class OneHotEncoder():
   Encode categorical features as a one-hot numeric array.
   Each unique category becomes its own binary column.
   """
-  def __init__(self):
+  def __init__(self) -> None:
     """
     Initialize OneHotEncoder with no learned parameters.
     """
@@ -122,7 +136,10 @@ class OneHotEncoder():
     :param X: 1D array of categorical values.
     :return: self
     """
-    self.categories_ = np.unique(X)
+    arr = np.asarray(X)
+    if arr.size == 0:
+        raise ValueError("X cannot be empty.")
+    self.categories_ = np.unique(arr)
     return self
   
   def transform(self, X: np.ndarray) -> np.ndarray:
@@ -131,7 +148,10 @@ class OneHotEncoder():
     :param X: 1D array of categorical values.
     :return: 2D binary array of shape (n_samples, n_categories).
     """
-    X_out = (X[:,None] == self.categories_).astype(int)
+    if self.categories_ is None:
+        raise ValueError("OneHotEncoder is not fitted yet. Call fit() first.")
+    arr = np.asarray(X)
+    X_out = (arr[:,None] == self.categories_).astype(int)
     return X_out
   
   def fit_transform(self, X:np.ndarray) -> np.ndarray:
@@ -167,10 +187,11 @@ class SimpleImputer():
     :param X: 2D training data array of shape (n_samples, n_features).
     :return: self
     """
+    arr = _validate_array(X, name="X", check_nan=False)
     if self.strategy == "mean":
-      self.statistics_ = np.nanmean(X,axis=0)
+      self.statistics_ = np.nanmean(arr,axis=0)
     elif self.strategy == "median":
-      self.statistics_ = np.nanmedian(X,axis=0)
+      self.statistics_ = np.nanmedian(arr,axis=0)
     elif self.strategy == "constant":
       self.statistics_ = self.fill_value
     else:
@@ -183,7 +204,10 @@ class SimpleImputer():
     :param X: 2D array of shape (n_samples, n_features).
     :return: Array of same shape as X with no NaN values.
     """
-    X_out = np.where(np.isnan(X), self.statistics_ , X)
+    if self.statistics_ is None:
+            raise ValueError("SimpleImputer is not fitted yet. Call fit() first.")
+    arr = _validate_array(X, name="X", check_nan=False)
+    X_out = np.where(np.isnan(arr), self.statistics_ , arr)
     return X_out
   
   def fit_transform(self, X:np.ndarray) ->np.ndarray:
@@ -195,3 +219,4 @@ class SimpleImputer():
     X_out  = self.fit(X).transform(X)
     return X_out
 
+__all__ = ["StandardScaler", "MinMaxScaler", "OneHotEncoder", "SimpleImputer"]
