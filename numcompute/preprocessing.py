@@ -108,7 +108,7 @@ class MinMaxScaler():
     if arr.shape[1] != self.min_.shape[0]:
             raise ValueError(f"Expected {self.min_.shape[0]} features, got {arr.shape[1]}.")
     a,b = self.feature_range
-    X_out = (arr - self.min_) / (self.max_ - self.min_) * (b - a) + a
+    X_out = (arr - self.min_) / self.range_ * (b - a) + a
     return X_out
 
   def fit_transform(self,X:np.ndarray) -> np.ndarray:
