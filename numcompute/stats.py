@@ -1,93 +1,147 @@
-from typing import Literal, Optional, Sequence, Tuple, Union
+"""
+stats.py
+
+Statistical utilities with emphasis on:
+- Vectorisation
+- Numerical stability
+- Streaming (Welford)
+- Robust handling of NaNs
+
+Functions:
+- mean
+- variance
+- welford (streaming mean/variance)
+- histogram
+- quantile
+"""
 
 import numpy as np
 
 
-def mean(data: np.ndarray, axis: Optional[int] = None, skipna: bool = False) -> Union[float, np.ndarray]:
-    """Compute mean with optional NaN skipping."""
-    arr = np.asarray(data)
-    if skipna:
-        return np.nanmean(arr, axis=axis)
-    return np.mean(arr, axis=axis)
+def mean(x, axis=None, ignore_nan=True):
+    """
+    Compute mean.
+
+    Parameters:
+        x : np.ndarray
+        axis : int or None
+        ignore_nan : bool
+
+    Returns:
+        np.ndarray or float
+    """
+    x = np.asarray(x)
+
+    if x.size == 0:
+        raise ValueError("Empty array")
+
+    if ignore_nan:
+        return np.nanmean(x, axis=axis)
+    else:
+        return np.mean(x, axis=axis)
 
 
-def median(data: np.ndarray, axis: Optional[int] = None, skipna: bool = False) -> Union[float, np.ndarray]:
-    """Compute median with optional NaN skipping."""
-    arr = np.asarray(data)
-    if skipna:
-        return np.nanmedian(arr, axis=axis)
-    return np.median(arr, axis=axis)
+def variance(x, axis=None, ddof=0, ignore_nan=True):
+    """
+    Compute variance.
+
+    Parameters:
+        x : np.ndarray
+        axis : int or None
+        ddof : int (0 = population, 1 = sample)
+        ignore_nan : bool
+
+    Returns:
+        np.ndarray or float
+    """
+    x = np.asarray(x)
+
+    if x.size == 0:
+        raise ValueError("Empty array")
+
+    if ignore_nan:
+        return np.nanvar(x, axis=axis, ddof=ddof)
+    else:
+        return np.var(x, axis=axis, ddof=ddof)
 
 
-def std(
-        data: np.ndarray,
-        axis: Optional[int] = None,
-        ddof: int = 0,
-        skipna: bool = False,
-) -> Union[float, np.ndarray]:
-    """Compute standard deviation with optional NaN skipping."""
-    arr = np.asarray(data)
-    if skipna:
-        return np.nanstd(arr, axis=axis, ddof=ddof)
-    return np.std(arr, axis=axis, ddof=ddof)
+def welford(x):
+    """
+    Compute mean and variance using Welford’s algorithm.
+
+    Parameters:
+        x : iterable or np.ndarray
+
+    Returns:
+        mean : float
+        variance : float (sample variance)
+    """
+    x = np.asarray(x, dtype=float)
+
+    if x.size == 0:
+        raise ValueError("Empty input")
+
+    mean = 0.0
+    M2 = 0.0
+    n = 0
+
+    for value in x:
+        if np.isnan(value):
+            continue
+
+        n += 1
+        delta = value - mean
+        mean += delta / n
+        delta2 = value - mean
+        M2 += delta * delta2
+
+    if n < 2:
+        return mean, 0.0
+
+    variance = M2 / (n - 1)
+    return mean, variance
 
 
-def min(data: np.ndarray, axis: Optional[int] = None, skipna: bool = False) -> Union[float, np.ndarray]:
-    """Compute minimum with optional NaN skipping."""
-    arr = np.asarray(data)
-    if skipna:
-        return np.nanmin(arr, axis=axis)
-    return np.min(arr, axis=axis)
+def histogram(x, bins=10, range=None):
+    """
+    Compute histogram.
+
+    Parameters:
+        x : np.ndarray
+        bins : int
+        range : tuple (min, max)
+
+    Returns:
+        hist : counts
+        bin_edges : array
+    """
+    x = np.asarray(x)
+
+    if x.size == 0:
+        raise ValueError("Empty array")
+
+    hist, bin_edges = np.histogram(x, bins=bins, range=range)
+    return hist, bin_edges
 
 
-def max(data: np.ndarray, axis: Optional[int] = None, skipna: bool = False) -> Union[float, np.ndarray]:
-    """Compute maximum with optional NaN skipping."""
-    arr = np.asarray(data)
-    if skipna:
-        return np.nanmax(arr, axis=axis)
-    return np.max(arr, axis=axis)
+def quantile(x, q, axis=None):
+    """
+    Compute quantiles.
 
+    Parameters:
+        x : np.ndarray
+        q : float or array-like in [0, 1]
+        axis : int or None
 
-def histogram(
-        data: np.ndarray,
-        bins: Union[int, Sequence[float]] = 10,
-        range: Optional[Tuple[float, float]] = None,
-        density: bool = False,
-        skipna: bool = True,
-) -> Tuple[np.ndarray, np.ndarray]:
-    """Compute histogram for the input data."""
-    arr = np.asarray(data)
-    if arr.ndim > 1:
-        arr = arr.ravel()
+    Returns:
+        quantiles
+    """
+    x = np.asarray(x)
 
-    if skipna and np.issubdtype(arr.dtype, np.number):
-        arr = arr[~np.isnan(arr)]
+    if x.size == 0:
+        raise ValueError("Empty array")
 
-    if arr.size == 0:
-        raise ValueError("histogram expects at least one valid value.")
+    if np.any((np.asarray(q) < 0) | (np.asarray(q) > 1)):
+        raise ValueError("q must be in [0, 1]")
 
-    return np.histogram(arr, bins=bins, range=range, density=density)
-
-
-def quantile(
-        data: np.ndarray,
-        q: Union[float, np.ndarray],
-        axis: Optional[int] = None,
-        interpolation: Literal["linear", "lower", "higher", "midpoint"] = "linear",
-        skipna: bool = False,
-) -> Union[float, np.ndarray]:
-    """Compute quantile(s) with optional NaN skipping."""
-    if interpolation not in {"linear", "lower", "higher", "midpoint"}:
-        raise ValueError("interpolation must be one of: 'linear', 'lower', 'higher', 'midpoint'.")
-
-    q_arr = np.asarray(q)
-    if np.any((q_arr < 0) | (q_arr > 1)):
-        raise ValueError("q must be in the range [0, 1].")
-
-    arr = np.asarray(data)
-
-    quantile_fn = np.nanquantile if skipna else np.quantile
-    try:
-        return quantile_fn(arr, q, axis=axis, method=interpolation)
-    except TypeError:
-        return quantile_fn(arr, q, axis=axis, interpolation=interpolation)
+    return np.quantile(x, q, axis=axis)
