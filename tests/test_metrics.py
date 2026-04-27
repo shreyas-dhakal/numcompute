@@ -18,7 +18,6 @@ def test_classification_metrics_binary() -> None:
     expected_p = tp / (tp + fp)
     expected_r = tp / (tp + fn)
     expected_f1 = 2 * expected_p * expected_r / (expected_p + expected_r)
-
     assert precision(y_true, y_pred) == expected_p
     assert recall(y_true, y_pred) == expected_r
     assert f1(y_true, y_pred) == expected_f1
@@ -27,7 +26,6 @@ def test_classification_metrics_binary() -> None:
 def test_confusion_matrix_multiclass() -> None:
     y_true = np.load(DATA_DIR / "multi_y_true.npy")
     y_pred = np.load(DATA_DIR / "multi_y_pred.npy")
-
     cm = confusion_matrix(y_true, y_pred)
     expected = np.array(
         [
@@ -72,7 +70,6 @@ def test_roc_curve_and_auc() -> None:
     assert thresholds[0] == np.inf
     assert np.all(np.diff(fpr) >= 0)
     assert np.all(np.diff(tpr) >= 0)
-
     area = auc(fpr, tpr)
     assert np.isclose(area, 0.75)
 
@@ -80,7 +77,6 @@ def test_roc_curve_and_auc() -> None:
 def test_zero_division_behavior() -> None:
     y_true = np.array([0, 0, 0], dtype=int)
     y_pred = np.array([0, 0, 0], dtype=int)
-
     assert precision(y_true, y_pred, pos_label=1, zero_division=0.0) == 0.0
     assert recall(y_true, y_pred, pos_label=1, zero_division=0.0) == 0.0
     assert f1(y_true, y_pred, pos_label=1, zero_division=0.0) == 0.0
@@ -91,7 +87,6 @@ def test_invalid_shapes_raise() -> None:
     y_pred = np.array([[1, 0, 1]], dtype=int)
     with pytest.raises(ValueError, match="1D"):
         accuracy(y_true, y_pred)
-
     with pytest.raises(ValueError, match="same length"):
         mse(np.array([1, 2], dtype=float), np.array([1], dtype=float))
 
