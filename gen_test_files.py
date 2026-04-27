@@ -138,41 +138,6 @@ def _gen_rank_test_data(output_dir: Path) -> None:
     )
 
 
-def _gen_stats_test_data(output_dir: Path) -> None:
-    """Generate fixtures for numcompute.stats tests."""
-    output_dir = output_dir / "stats"
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    np.save(
-        output_dir / "stats_values_1d.npy",
-        np.array([1, 2, 3, 4, 5], dtype=float),
-    )
-
-    np.save(
-        output_dir / "stats_values_2d.npy",
-        np.array(
-            [
-                [1, 2, 3],
-                [4, 5, 6],
-                [7, 8, 9],
-            ],
-            dtype=float,
-        ),
-    )
-
-    np.save(
-        output_dir / "stats_values_with_nan.npy",
-        np.array(
-            [
-                [1.0, np.nan, 3.0],
-                [4.0, 5.0, np.nan],
-                [np.nan, 8.0, 9.0],
-            ],
-            dtype=float,
-        ),
-    )
-
-
 def _gen_metrics_test_data(output_dir: Path) -> None:
     """Generate fixtures for numcompute.metrics tests."""
     output_dir = output_dir / "metrics"
@@ -248,7 +213,6 @@ GENERATORS: Dict[str, Callable[[Path], None]] = {
     "io": _gen_io_test_data,
     "sort_search": _gen_sort_search_test_data,
     "rank": _gen_rank_test_data,
-    "stats": _gen_stats_test_data,
     "metrics": _gen_metrics_test_data,
     "utils": _gen_utils_test_data,
 }
