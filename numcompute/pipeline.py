@@ -75,6 +75,6 @@ class Pipeline:
         if not hasattr(final_step, "predict"):
             raise ValueError(f"Final step '{name}' does not implement predict().")
         return final_step.predict(x_curr)
-
+    
 
 __all__ = ["Pipeline"]
