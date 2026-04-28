@@ -75,3 +75,17 @@ def test_histogram_empty_array_raises() -> None:
 def test_quantile_median() -> None:
     x = np.load(DATA_DIR / "stats_normal.npy")
     assert np.isclose(quantile(x, 0.5), np.quantile(x, 0.5))
+
+def test_quantile_multiple_values() -> None:
+    x = np.load(DATA_DIR / "stats_normal.npy")
+    qs = [0.25, 0.5, 0.75]
+    assert np.allclose(quantile(x, qs), np.quantile(x, qs))
+
+def test_quantile_invalid_q_raises() -> None:
+    x = np.load(DATA_DIR / "stats_normal.npy")
+    with pytest.raises(ValueError, match="q must"):
+        quantile(x, q=1.5)
+
+def test_quantile_empty_array_raises() -> None:
+    with pytest.raises(ValueError, match="Empty"):
+        quantile(np.array([]), q=0.5)
