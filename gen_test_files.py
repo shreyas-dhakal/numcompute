@@ -271,6 +271,29 @@ def _gen_pipeline_test_data(output_dir: Path) -> None:
                   [5.0,    6.0]], dtype=float)
     )
 
+def _gen_stats_test_data(output_dir: Path) -> None:
+    """Generate fixtures for numcompute.stats tests."""
+    output_dir = output_dir / "stats"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    
+    np.save(
+        output_dir / "stats_normal.npy",
+        np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=float)
+    )
+
+    
+    np.save(
+        output_dir / "stats_nan.npy",
+        np.array([1.0, np.nan, 3.0, np.nan, 5.0], dtype=float)
+    )
+
+    
+    np.save(
+        output_dir / "stats_histogram.npy",
+        np.array([1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0], dtype=float)
+    )
+
 GENERATORS: Dict[str, Callable[[Path], None]] = {
     "io": _gen_io_test_data,
     "sort_search": _gen_sort_search_test_data,
@@ -279,6 +302,7 @@ GENERATORS: Dict[str, Callable[[Path], None]] = {
     "utils": _gen_utils_test_data,
     "preprocessing": _gen_preprocessing_test_data,
     "pipeline": _gen_pipeline_test_data,
+    "stats": _gen_stats_test_data,
 }
 
 
