@@ -33,7 +33,7 @@ def test_variance_normal_case()-> None:
 
 def test_variance_sample_ddof()-> None:
     X = np.load(DATA_DIR/ "stats_normal.npy")
-    assert np.isclose(variance(X, ddof=1))
+    assert np.isclose(variance(X, ddof=1), np.var(X, ddof=1))
 
 def test_variance_empty_raises()-> None:
     with pytest.raises(ValueError, match="Empty"):
