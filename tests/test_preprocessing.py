@@ -3,12 +3,11 @@ import numpy as np
 import pytest
 from numcompute.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder, SimpleImputer
 
+DATA_DIR = Path(__file__).resolve().parent / "data" / "preprocessing"
 
 #sTANDARDScaler
 def test_standard_scaler_mean_zero_std_pne() -> None:
-        X = np.array([[2.0, 4.0],
-                  [6.0, 8.0],
-                  [10.0, 12.0]])
+        X = np.load(DATA_DIR / "preprocessing_normal.npy")
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
         assert np.allclose(np.mean(X_scaled, axis=0), 0.0)
@@ -16,9 +15,7 @@ def test_standard_scaler_mean_zero_std_pne() -> None:
 
 
 def test_standard_scaler_all_equal_values_no_crash() -> None:
-    X = np.array([[5.0, 5.0],
-                  [5.0, 5.0],
-                  [5.0, 5.0]])
+    X = np.load(DATA_DIR / "preprocessing_equal.npy")
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     assert not np.any(np.isnan(X_scaled))
@@ -45,26 +42,21 @@ def test_standard_scaler_wrong_features_raises() -> None:
 
 #MinMax
 def test_minmax_scaler_default_range() -> None:
-    X = np.array([[2.0, 4.0],
-                  [6.0, 8.0],
-                  [10.0, 12.0]])
+    X = np.load(DATA_DIR / "preprocessing_normal.npy")
     scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(X)
     assert np.allclose(np.min(X_scaled, axis=0), 0.0)
     assert np.allclose(np.max(X_scaled, axis=0), 1.0)
 
 def test_minmax_scaler_custom_feature_range() -> None:
-    X = np.array([[2.0, 4.0],
-                  [6.0, 8.0],
-                  [10.0, 12.0]])
+    X = np.load(DATA_DIR / "preprocessing_normal.npy")
     scaler = MinMaxScaler(feature_range=(-1.0, 1.0))
     X_scaled = scaler.fit_transform(X)
     assert np.allclose(np.min(X_scaled, axis=0), -1.0)
     assert np.allclose(np.max(X_scaled, axis=0), 1.0)
 
 def test_minmax_scaler_all_equal_values_no_crash() -> None:
-    X = np.array([[3.0, 3.0],
-                  [3.0, 3.0]])
+    X = np.load(DATA_DIR / "preprocessing_equal.npy")
     scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(X)
     assert not np.any(np.isnan(X_scaled))
@@ -77,7 +69,7 @@ def test_minmax_scaler_invalid_range_raises() -> None:
 
 #OneHotEncoder
 def test_onehotencoder_correct_output() -> None:
-    X = np.array(["cat", "dog", "bird", "cat"])
+    X = np.load(DATA_DIR / "preprocessing_categories.npy")
     encoder = OneHotEncoder()
     X_encoded = encoder.fit_transform(X)
     assert X_encoded.shape == (4, 3)
@@ -92,22 +84,19 @@ def test_onehotencoder_not_fitted_raises() -> None:
 
 #SimpleImputer
 def test_simple_imputer_mean_replaces_nan() -> None:
-    X = np.array([[1.0,      2.0],
-                  [np.nan,   4.0],
-                  [5.0,      np.nan]])
+    X = np.load(DATA_DIR / "preprocessing_nan.npy")
     imputer = SimpleImputer(strategy="mean")
     X_out = imputer.fit_transform(X)
     assert not np.any(np.isnan(X_out))
     assert np.isclose(X_out[1, 0], np.nanmean(X[:, 0]))
 
 def test_simple_imputer_constant_replaces_nan() -> None:
-    X = np.array([[1.0,    np.nan],
-                  [np.nan, 4.0]])
+    X = np.load(DATA_DIR / "preprocessing_nan.npy")
     imputer = SimpleImputer(strategy="constant", fill_value=-1.0)
     X_out = imputer.fit_transform(X)
     assert not np.any(np.isnan(X_out))
-    assert X_out[0, 1] == -1.0
     assert X_out[1, 0] == -1.0
+    assert X_out[2, 1] == -1.0
 
 def test_simple_imputer_invalid_strategy_raises() -> None:
     X = np.array([[1.0, 2.0],
@@ -116,8 +105,7 @@ def test_simple_imputer_invalid_strategy_raises() -> None:
         SimpleImputer(strategy="mode").fit(X)
 
 def test_simple_imputer_no_nan_unchanged() -> None:
-    X = np.array([[1.0, 2.0],
-                  [3.0, 4.0]])
+    X = np.load(DATA_DIR / "preprocessing_normal.npy")
     imputer = SimpleImputer(strategy="mean")
     X_out = imputer.fit_transform(X)
     assert np.array_equal(X, X_out)
