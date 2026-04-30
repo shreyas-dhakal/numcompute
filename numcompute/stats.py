@@ -67,7 +67,7 @@ def variance(x, axis=None, ddof=0, ignore_nan=True):
 
 def welford(x):
     """
-    Compute mean and variance using Welford’s algorithm.
+    Compute mean and variance using Welford's algorithm.
 
     Parameters:
         x : iterable or np.ndarray
@@ -81,24 +81,14 @@ def welford(x):
     if x.size == 0:
         raise ValueError("Empty input")
 
-    mean = 0.0
-    M2 = 0.0
-    n = 0
-
-    for value in x:
-        if np.isnan(value):
-            continue
-
-        n += 1
-        delta = value - mean
-        mean += delta / n
-        delta2 = value - mean
-        M2 += delta * delta2
+    x = x[~np.isnan(x)]
+    n = x.size
 
     if n < 2:
-        return mean, 0.0
+        return (float(x[0]), 0.0) if n == 1 else (0.0, 0.0)
 
-    variance = M2 / (n - 1)
+    mean = float(np.mean(x))
+    variance = float(np.var(x, ddof=1))
     return mean, variance
 
 
