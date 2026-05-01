@@ -11,13 +11,38 @@ def load_csv(
         skip_rows: int = 1
 ) -> np.ndarray:
     """
-    Load a CSV file into a NumPy array.
-    :param filepath: Path to the CSV file.
-    :param delimiter: The string used to separate values (default: ',').
-    :param missing_strategy: skip - skip rows with missing data; fill - fill missing data with fill_value (default: 'skip').
-    :param fill_value: The value to fill missing data with (default: np.nan) if handle_missing is 'fill'.
-    :param skip_rows: The number of rows to skip at the beginning of the file (default: 1, to skip header).
-    :return: The loaded data as a float array.
+    Load a CSV file into a NumPy array with basic missing value handling.
+
+    Parameters
+    filepath : Union[str, Path]
+        Path to the CSV file.
+    delimiter : str, optional
+        Field delimiter used in the file (default is ',').
+    missing_strategy : {"fill", "skip"}, optional
+        Strategy for handling missing values:
+        - "fill": Replace missing values with `fill_value`.
+        - "skip": Remove rows containing any missing values.
+    fill_value : float, optional
+        Value used to replace missing entries when `missing_strategy="fill"`.
+        If set to np.nan, missing values remain unchanged.
+    skip_rows : int, optional
+        Number of rows to skip at the beginning of the file
+        (default is 1, typically to skip a header row).
+
+    Returns
+    np.ndarray
+        Loaded data as a 2D NumPy array of shape (n_samples, n_features).
+        If the input is a single column, it is reshaped to (n_samples, 1).
+
+    Raises
+    ValueError
+        If `missing_strategy` is not one of {"fill", "skip"}.
+
+    Time Complexity
+    O(n * m), where n is the number of rows and m is the number of columns.
+
+    Space Complexity
+    O(n * m), for storing the dataset in memory.
     """
     data = np.genfromtxt(
         filepath,

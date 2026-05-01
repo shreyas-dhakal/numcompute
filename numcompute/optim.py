@@ -4,6 +4,30 @@ import numpy as np
 
 
 def _as_1d_array(x: np.ndarray, name: str = "x") -> np.ndarray:
+    """
+    Convert input to a 1D NumPy array of floats and validate it.
+
+    Parameters
+    x : np.ndarray
+        Input array-like object.
+    name : str, optional
+        Name used in error messages.
+
+    Returns
+    np.ndarray
+        A 1D NumPy array of shape (n,) with dtype=float.
+
+    Raises
+    ValueError
+        If the input is not 1-dimensional or is empty.
+
+    Time Complexity
+    O(n), where n is the number of elements in x.
+
+    Space Complexity
+    O(n), due to array conversion.
+    """
+
     arr = np.asarray(x, dtype=float)
     if arr.ndim != 1:
         raise ValueError(f"{name} must be a 1D array.")
@@ -13,6 +37,27 @@ def _as_1d_array(x: np.ndarray, name: str = "x") -> np.ndarray:
 
 
 def _validate_h(h: float) -> float:
+    """
+    Validate and normalize a finite-difference step size.
+
+    Parameters
+    h : float
+        Step size.
+
+    Returns
+    float
+        Validated positive finite float.
+
+    Raises
+    ValueError
+        If h is not finite or is non-positive.
+
+    Time Complexity
+    O(1)
+
+    Space Complexity
+    O(1)
+    """
     h_val = float(h)
     if not np.isfinite(h_val) or h_val <= 0.0:
         raise ValueError("h must be a positive finite float.")
@@ -20,6 +65,29 @@ def _validate_h(h: float) -> float:
 
 
 def _as_1d_output(y: np.ndarray, name: str = "output") -> np.ndarray:
+    """
+    Ensure function output is a non-empty 1D NumPy array.
+
+    Parameters
+    y : np.ndarray
+        Function output.
+    name : str, optional
+        Name used in error messages.
+
+    Returns
+    np.ndarray
+        A 1D NumPy array of shape (m,), where m >= 1.
+
+    Raises
+    ValueError
+        If the output is not scalar or 1D, or is empty.
+
+    Time Complexity
+    O(m), where m is the number of output elements.
+
+    Space Complexity
+    O(m)
+    """
     arr = np.asarray(y, dtype=float)
     if arr.ndim == 0:
         return arr.reshape(1)
@@ -31,6 +99,29 @@ def _as_1d_output(y: np.ndarray, name: str = "output") -> np.ndarray:
 
 
 def _as_scalar(y: np.ndarray, name: str = "f(x)") -> float:
+    """
+    Convert input to a scalar float.
+
+    Parameters
+    y : np.ndarray
+        Function output.
+    name : str, optional
+        Name used in error messages.
+
+    Returns
+    float
+        Scalar value.
+
+    Raises
+    ValueError
+        If the input is not scalar-valued.
+
+    Time Complexity
+    O(1)
+
+    Space Complexity
+    O(1)
+    """
     arr = np.asarray(y, dtype=float)
     if arr.ndim == 0:
         return float(arr)
@@ -46,8 +137,36 @@ def grad(
     method: Literal["central", "forward"] = "central",
 ) -> np.ndarray:
     """
-    Estimate gradient of a scalar-valued function using finite differences.
+    Estimate the gradient of a scalar-valued function via finite differences.
+
+    Parameters
+    f : Callable[[np.ndarray], float]
+    x : np.ndarray
+        Input point of shape (n,).
+    h : float, optional
+        Step size for finite differences.
+    method : {"central", "forward"}, optional
+        Finite difference scheme:
+        - "central": (f(x+h) - f(x-h)) / (2h)
+        - "forward": (f(x+h) - f(x)) / h
+
+    Returns
+    np.ndarray
+        Gradient vector of shape (n,).
+
+    Raises
+    ValueError
+        If x is not 1D, h is invalid, method is unsupported,
+        or f does not return a scalar.
+
+    Time Complexity
+    O(n * T_f), where n is dimension of x and T_f is cost of evaluating f.
+    Central differences require ~2n evaluations; forward requires ~n+1.
+
+    Space Complexity
+    O(n), for storing the gradient and temporary vectors.
     """
+
     x_arr = _as_1d_array(x)
     h_val = _validate_h(h)
 
@@ -82,7 +201,31 @@ def jacobian(
     method: Literal["central", "forward"] = "central",
 ) -> np.ndarray:
     """
-    Estimate Jacobian of a vector-valued function using finite differences.
+    Estimate the Jacobian of a vector-valued function via finite differences.
+
+    Parameters
+    F : Callable[[np.ndarray], np.ndarray]
+    x : np.ndarray
+    h : float, optional
+        Step size for finite differences.
+    method : {"central", "forward"}, optional
+        Finite difference scheme.
+
+    Returns
+    np.ndarray
+        Jacobian matrix of shape (m, n), where m is output dimension.
+
+    Raises
+    ValueError
+        If input/output shapes are invalid, method is unsupported,
+        or F returns inconsistent output dimensions.
+
+    Time Complexity
+    O(n * T_F * k), where k = 2 for central and k = 1 for forward,
+    and T_F is the cost of evaluating F.
+
+    Space Complexity
+    O(mn), for the Jacobian matrix.
     """
     x_arr = _as_1d_array(x)
     h_val = _validate_h(h)
@@ -127,10 +270,40 @@ def line_search(
     max_iter: int = 50,
 ) -> float:
     """
-    Armijo backtracking line search.
+    Perform Armijo backtracking line search.
 
-    Returns the accepted step size and falls back to 0.0 if no acceptable
-    step is found within max_iter reductions.
+    Parameters
+    f : Callable[[np.ndarray], float]
+    x : np.ndarray
+        Current point of shape (n,).
+    direction : np.ndarray
+        Descent direction of shape (n,).
+    grad_x : np.ndarray, optional
+        Gradient at x of shape (n,). If None, it is estimated via `grad`.
+    alpha0 : float, optional
+        Initial step size.
+    c : float, optional
+        Armijo condition constant in (0, 1).
+    tau : float, optional
+        Step reduction factor in (0, 1).
+    max_iter : int, optional
+        Maximum number of backtracking iterations.
+
+    Returns
+    float
+        Accepted step size. Returns 0.0 if no valid step is found.
+
+    Raises
+    ValueError
+        If shapes mismatch, parameters are invalid, or direction is not
+        a descent direction.
+
+    Time Complexity
+    O(max_iter * T_f + T_grad), where T_f is cost of evaluating f and
+    T_grad is cost of gradient computation (if needed).
+
+    Space Complexity
+    O(n), for temporary vectors.
     """
     x_arr = _as_1d_array(x)
     p = _as_1d_array(direction, name="direction")
