@@ -3,7 +3,21 @@ from typing import Sequence, Tuple, Union
 
 def stable_sort(data, axis=-1):
     """
-    Perform a stable sort on a NumPy array.
+    Perform a stable sort on an array.
+
+    Parameters
+    data : array-like
+    axis : int, optional
+
+    Returns
+    np.ndarray
+        Sorted array with same shape as input.
+
+    Time Complexity
+    O(n log n)
+
+    Space Complexity
+    O(n)
     """
     data = np.sort(data, axis=axis, kind="stable")
     return data
@@ -15,9 +29,30 @@ def multi_key_sort(
         return_indices: bool = False,
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """
-    Stable multi-key sort for 2D arrays by column index priority.
-    Keys are interpreted from highest to lowest priority. Example:
-    keys=[0, 2] means sort by column 0 first, then break ties by column 2.
+    Sort a 2D array using multiple column keys (stable).
+
+    Parameters
+    data : np.ndarray of shape (n_rows, n_cols)
+    keys : Sequence[int]
+        Column indices in priority order.
+    return_indices : bool, optional
+
+    Returns
+    np.ndarray of shape (n_rows, n_cols)
+    or (np.ndarray, np.ndarray)
+        Sorted array and optionally row indices.
+
+    Raises
+    ValueError
+        If input is not 2D or keys empty.
+    IndexError
+        If key is out of bounds.
+
+    Time Complexity
+    O(k * n log n)
+
+    Space Complexity
+    O(n)
     """
     arr = np.asarray(data)
     if arr.ndim != 2:
@@ -43,7 +78,28 @@ def multi_key_sort(
 
 def topk(values, k, largest=True, return_indices=True):
     """
-    Return the top-k elements from a 1D array.
+    Select top-k elements from a 1D array.
+
+    Parameters
+    values : np.ndarray of shape (n,)
+    k : int
+    largest : bool, optional
+    return_indices : bool, optional
+
+    Returns
+    np.ndarray of shape (k,)
+    or (np.ndarray, np.ndarray)
+        Top-k values and optionally indices.
+
+    Raises
+    ValueError
+        If input is not 1D or k is invalid.
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(k)
     """
     values = np.asarray(values)
     if values.ndim != 1:
@@ -69,9 +125,27 @@ def topk(values, k, largest=True, return_indices=True):
 
 def quickselect(values: np.ndarray, k: int, largest: bool = False) -> float:
     """
-    Educational in-place quickselect for 1D arrays.
-    k is a zero-based rank. With largest=False, k=0 is minimum.
-    With largest=True, k=0 is maximum.
+    Select k-th element using quickselect.
+
+    Parameters
+    values : np.ndarray of shape (n,)
+    k : int
+        Zero-based rank.
+    largest : bool, optional
+
+    Returns
+    float
+        Selected value.
+
+    Raises
+    ValueError
+        If input is not 1D or k is out of range.
+
+    Time Complexity
+    O(n) average, O(n^2) worst-case
+
+    Space Complexity
+    O(n)
     """
     arr = np.asarray(values)
     if arr.ndim != 1:
@@ -112,8 +186,25 @@ def quickselect(values: np.ndarray, k: int, largest: bool = False) -> float:
 
 def binary_search(sorted_array: np.ndarray, x: float) -> Tuple[int, bool]:
     """
-    Binary search on a sorted 1D array.
-    Returns (insertion_index, exists).
+    Perform binary search on a sorted array.
+
+    Parameters
+    sorted_array : np.ndarray of shape (n,)
+    x : float
+
+    Returns
+    tuple[int, bool]
+        (insertion index, exists flag).
+
+    Raises
+    ValueError
+        If input is not 1D.
+
+    Time Complexity
+    O(log n)
+
+    Space Complexity
+    O(1)
     """
     arr = np.asarray(sorted_array)
     if arr.ndim != 1:

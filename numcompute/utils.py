@@ -5,13 +5,45 @@ from typing import Iterator, Tuple
 
 def euchlidean_distance(a, b):
     """
-    Compute the Euclidean distance between two 1D arrays.
+    Compute Euclidean distance between two 1D arrays.
+
+    Parameters
+    a : np.ndarray of shape (n,)
+    b : np.ndarray of shape (n,)
+
+    Returns
+    float
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(1)
     """
     return np.sqrt(np.sum((a - b) ** 2))
 
 
 def pairwise_euclidean_distances(X: np.ndarray, Y: np.ndarray) -> np.ndarray:
-    """Compute pairwise Euclidean distances between rows of X and Y."""
+    """
+    Compute pairwise Euclidean distances between rows.
+
+    Parameters
+    X : np.ndarray of shape (n_samples_x, n_features)
+    Y : np.ndarray of shape (n_samples_y, n_features)
+
+    Returns
+    np.ndarray of shape (n_samples_x, n_samples_y)
+
+    Raises
+    ValueError
+        If inputs are not 2D or feature dimensions mismatch.
+
+    Time Complexity
+    O(n_x * n_y * d)
+
+    Space Complexity
+    O(n_x * n_y)
+    """
     X_arr = np.asarray(X, dtype=float)
     Y_arr = np.asarray(Y, dtype=float)
     if X_arr.ndim != 2 or Y_arr.ndim != 2:
@@ -28,14 +60,40 @@ def pairwise_euclidean_distances(X: np.ndarray, Y: np.ndarray) -> np.ndarray:
 
 def manhattan_distance(a, b):
     """
-    Compute the Manhattan distance between two 1D arrays.
+    Compute Manhattan distance between two 1D arrays.
+
+    Parameters
+    a : np.ndarray of shape (n,)
+    b : np.ndarray of shape (n,)
+
+    Returns
+    float
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(1)
     """
     return np.sum(np.abs(a - b))
 
 
 def cosine_similarity(a, b):
     """
-    Compute the cosine similarity between two 1D arrays.
+    Compute cosine similarity between two 1D arrays.
+
+    Parameters
+    a : np.ndarray of shape (n,)
+    b : np.ndarray of shape (n,)
+
+    Returns
+    float
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(1)
     """
     dot_product = np.dot(a, b)
     norm_a = np.linalg.norm(a)
@@ -47,7 +105,20 @@ def cosine_similarity(a, b):
 
 def jaccard_similarity(a, b):
     """
-    Compute the Jaccard similarity between two 1D binary arrays.
+    Compute Jaccard similarity for binary arrays.
+
+    Parameters
+    a : np.ndarray of shape (n,)
+    b : np.ndarray of shape (n,)
+
+    Returns
+    float
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(1)
     """
     intersection = np.sum(np.logical_and(a, b))
     union = np.sum(np.logical_or(a, b))
@@ -58,20 +129,59 @@ def jaccard_similarity(a, b):
 
 def hamming_distance(a, b):
     """
-    Compute the Hamming distance between two 1D arrays.
+    Compute Hamming distance between two arrays.
+
+    Parameters
+    a : np.ndarray of shape (n,)
+    b : np.ndarray of shape (n,)
+
+    Returns
+    int
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(1)
     """
     return np.sum(a != b)
 
 
 def relu(x):
     """
-    Apply the ReLU activation function to a 1D array.
+    Apply ReLU activation.
+
+    Parameters
+    x : np.ndarray
+
+    Returns
+    np.ndarray
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(n)
     """
     return np.maximum(0, x)
 
 
 def sigmoid(x: np.ndarray) -> np.ndarray:
-    """Numerically stable sigmoid."""
+    """
+    Compute sigmoid activation.
+
+    Parameters
+    x : np.ndarray
+
+    Returns
+    np.ndarray
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(n)
+    """
     x_arr = np.asarray(x, dtype=float)
     out = np.empty_like(x_arr)
     pos = x_arr >= 0
@@ -82,7 +192,22 @@ def sigmoid(x: np.ndarray) -> np.ndarray:
 
 
 def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
-    """Numerically stable softmax along axis."""
+    """
+    Compute softmax along an axis.
+
+    Parameters
+    x : np.ndarray
+    axis : int
+
+    Returns
+    np.ndarray
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(n)
+    """
     x_arr = np.asarray(x, dtype=float)
     shift = x_arr - np.max(x_arr, axis=axis, keepdims=True)
     exps = np.exp(shift)
@@ -90,7 +215,23 @@ def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
 
 
 def logsumexp(x: np.ndarray, axis: int = -1, keepdims: bool = False) -> np.ndarray:
-    """Numerically stable log-sum-exp."""
+    """
+    Compute log-sum-exp.
+
+    Parameters
+    x : np.ndarray
+    axis : int
+    keepdims : bool
+
+    Returns
+    np.ndarray
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(n)
+    """
     x_arr = np.asarray(x, dtype=float)
     m = np.max(x_arr, axis=axis, keepdims=True)
     out = m + np.log(np.sum(np.exp(x_arr - m), axis=axis, keepdims=True))
@@ -100,7 +241,27 @@ def logsumexp(x: np.ndarray, axis: int = -1, keepdims: bool = False) -> np.ndarr
 
 
 def topk_indices(values: np.ndarray, k: int, largest: bool = True) -> np.ndarray:
-    """Return sorted top-k indices using argpartition."""
+    """
+    Return indices of top-k elements.
+
+    Parameters
+    values : np.ndarray of shape (n,)
+    k : int
+    largest : bool
+
+    Returns
+    np.ndarray of shape (k,)
+
+    Raises
+    ValueError
+        If input is not 1D or k invalid.
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(k)
+    """
     arr = np.asarray(values)
     if arr.ndim != 1:
         raise ValueError("values must be a 1D array.")
@@ -117,7 +278,27 @@ def topk_indices(values: np.ndarray, k: int, largest: bool = True) -> np.ndarray
 
 
 def batch_slices(n_samples: int, batch_size: int, drop_last: bool = False) -> Iterator[Tuple[int, int]]:
-    """Yield (start, end) slice boundaries for mini-batches."""
+    """
+    Generate mini-batch index ranges.
+
+    Parameters
+    n_samples : int
+    batch_size : int
+    drop_last : bool
+
+    Returns
+    Iterator[tuple[int, int]]
+
+    Raises
+    ValueError
+        If inputs are invalid.
+
+    Time Complexity
+    O(n / batch_size)
+
+    Space Complexity
+    O(1)
+    """
     if n_samples < 0:
         raise ValueError("n_samples must be non-negative.")
     if batch_size <= 0:

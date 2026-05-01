@@ -20,15 +20,25 @@ import numpy as np
 
 def mean(x, axis=None, ignore_nan=True):
     """
-    Compute mean.
+    Compute mean of an array.
 
-    Parameters:
-        x : np.ndarray
-        axis : int or None
-        ignore_nan : bool
+    Parameters
+    x : np.ndarray
+    axis : int or None
+    ignore_nan : bool
 
-    Returns:
-        np.ndarray or float
+    Returns
+    np.ndarray or float
+
+    Raises
+    ValueError
+        If input is empty.
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(1)
     """
     x = np.asarray(x)
 
@@ -43,16 +53,26 @@ def mean(x, axis=None, ignore_nan=True):
 
 def variance(x, axis=None, ddof=0, ignore_nan=True):
     """
-    Compute variance.
+    Compute variance of an array.
 
-    Parameters:
-        x : np.ndarray
-        axis : int or None
-        ddof : int (0 = population, 1 = sample)
-        ignore_nan : bool
+    Parameters
+    x : np.ndarray
+    axis : int or None
+    ddof : int
+    ignore_nan : bool
 
-    Returns:
-        np.ndarray or float
+    Returns
+    np.ndarray or float
+
+    Raises
+    ValueError
+        If input is empty.
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(1)
     """
     x = np.asarray(x)
 
@@ -67,14 +87,24 @@ def variance(x, axis=None, ddof=0, ignore_nan=True):
 
 def welford(x):
     """
-    Compute mean and variance using Welford's algorithm.
+    Compute mean and sample variance.
 
-    Parameters:
-        x : iterable or np.ndarray
+    Parameters
+    x : array-like of shape (n,)
 
-    Returns:
-        mean : float
-        variance : float (sample variance)
+    Returns
+    tuple[float, float]
+        (mean, variance)
+
+    Raises
+    ValueError
+        If input is empty.
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(1)
     """
     x = np.asarray(x, dtype=float)
 
@@ -96,14 +126,24 @@ def histogram(x, bins=10, range=None):
     """
     Compute histogram.
 
-    Parameters:
-        x : np.ndarray
-        bins : int
-        range : tuple (min, max)
+    Parameters
+    x : np.ndarray
+    bins : int
+    range : tuple or None
 
-    Returns:
-        hist : counts
-        bin_edges : array
+    Returns
+    tuple[np.ndarray, np.ndarray]
+        (counts, bin_edges)
+
+    Raises
+    ValueError
+        If input is empty.
+
+    Time Complexity
+    O(n)
+
+    Space Complexity
+    O(bins)
     """
     x = np.asarray(x)
 
@@ -118,13 +158,23 @@ def quantile(x, q, axis=None):
     """
     Compute quantiles.
 
-    Parameters:
-        x : np.ndarray
-        q : float or array-like in [0, 1]
-        axis : int or None
+    Parameters
+    x : np.ndarray
+    q : float or array-like in [0, 1]
+    axis : int or None
 
-    Returns:
-        quantiles
+    Returns
+    np.ndarray or float
+
+    Raises
+    ValueError
+        If input is empty or q is out of range.
+
+    Time Complexity
+    O(n log n)
+
+    Space Complexity
+    O(n)
     """
     x = np.asarray(x)
 

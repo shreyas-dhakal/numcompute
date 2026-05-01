@@ -7,6 +7,24 @@ def rank(
 ) -> np.ndarray:
     """
     Rank values in a 1D array, handling ties by the selected method.
+
+    Parameters
+    data : np.ndarray of shape (n,)
+    method : {"average", "dense", "ordinal"}
+
+    Returns
+    np.ndarray of shape (n,)
+        Ranks (float).
+
+    Raises
+    ValueError
+        If input is not 1D, empty, or method is invalid.
+
+    Time Complexity
+    O(n log n)
+
+    Space Complexity
+    O(n)    
     """
     arr = np.asarray(data)
     if arr.ndim != 1:
@@ -49,7 +67,28 @@ def percentile(
         interpolation: Literal["linear", "lower", "higher", "midpoint"] = "linear",
 ) -> Union[float, np.ndarray]:
     """
-    Compute percentile(s) for a 1D array.
+    Compute percentile value(s) of a 1D array.
+
+    Parameters
+    data : np.ndarray of shape (n,)
+    q : float or np.ndarray
+        Percentile(s) in [0, 100].
+    interpolation : {"linear", "lower", "higher", "midpoint"}
+
+    Returns
+    float or np.ndarray
+        
+
+    Raises
+    ValueError
+        If input is not 1D, empty, q is out of range,
+        or interpolation method is invalid.
+
+    Time Complexity
+    O(n log n)
+
+    Space Complexity
+    O(n)
     """
     arr = np.asarray(data)
     if arr.ndim != 1:

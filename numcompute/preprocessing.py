@@ -1,6 +1,30 @@
 import numpy as np
 
 def _validate_array(X: np.ndarray, name: str = "X", check_nan: bool = False) -> np.ndarray:
+   
+    """
+    Convert input to a 2D NumPy array of floats and validate it.
+
+    Parameters
+    X : np.ndarray
+    name : str, optional
+    check_nan : bool, optional
+
+    Returns
+    np.ndarray
+        Array of shape (n_samples, n_features).
+
+    Raises
+    ValueError
+        If not 2D, empty, or contains NaNs (if check_nan=True).
+
+    Time Complexity
+    O(n * d)
+
+    Space Complexity
+    O(n * d)
+  """
+   
     arr = np.asarray(X, dtype=float)
     if arr.ndim != 2:
       raise ValueError(f"{name} must be 2D.")
@@ -17,20 +41,41 @@ def _validate_array(X: np.ndarray, name: str = "X", check_nan: bool = False) -> 
 class StandardScaler:
     """
     Standardize features by removing mean and scaling to unit variance.
+    Applies z-score normalization per feature column:
+
     Formula : z = (X - u) / s
     """
     def __init__(self) -> None:
       """
       Initialize StandardScaler with no learned parameters.
+      Time Complexity
+      O(1)
+
+      Space Complexity
+      O(1)
       """
       self.mean_ = None
       self.std_ = None
         
     def fit(self, X: np.ndarray) -> "StandardScaler":
       """
-      Compute and store mean and std from training data.
-      :param X: 2D training data array of shape (n_samples, n_features).
-      :return: self
+        Compute mean and std from data.
+
+        Parameters
+        X : np.ndarray of shape (n_samples, n_features)
+
+        Returns
+        StandardScaler
+
+        Raises
+        ValueError
+            If input is invalid.
+
+        Time Complexity
+        O(n * d)
+
+        Space Complexity
+        O(d)
       """
       arr = _validate_array(X, name="X", check_nan=True)
       self.mean_ = np.mean(arr, axis=0)
@@ -40,10 +85,24 @@ class StandardScaler:
 
     def transform(self, X: np.ndarray) -> np.ndarray:
       """
-      Apply z-score standardization using stored mean and std.
-      :param X: 2D array of shape (n_samples, n_features).
-      :return: Standardized array of same shape as X.
-      """
+        Apply standardization.
+
+        Parameters
+        X : np.ndarray of shape (n_samples, n_features)
+
+        Returns
+        np.ndarray of shape (n_samples, n_features)
+
+        Raises
+        ValueError
+            If not fitted or shape mismatch.
+
+        Time Complexity
+        O(n * d)
+
+        Space Complexity
+        O(n * d)
+        """
       if self.mean_ is None or self.std_ is None:
             raise ValueError("StandardScaler is not fitted yet. Call fit() first.")
       arr = _validate_array(X, name="X", check_nan=True)
@@ -56,23 +115,45 @@ class StandardScaler:
 
     def fit_transform(self,X: np.ndarray) -> np.ndarray:
       """
-      Fit to data then transform it in one step.
-      :param X: 2D training data array of shape (n_samples, n_features).
-      :return: Standardized array of same shape as X.
-      """
+        Fit and transform.
+
+        Parameters
+        X : np.ndarray of shape (n_samples, n_features)
+
+        Returns
+        np.ndarray of shape (n_samples, n_features)
+
+        Time Complexity
+        O(n * d)
+
+        Space Complexity
+        O(n * d)
+        """
       X_out = self.fit(X).transform(X)
       return X_out
         
 
 class MinMaxScaler():
   """
-  Scale features to a given range using min-max normalization.
-  Formula: z = (X - min) / (max - min) * (b - a) + a
+  Scale features to a given range.
+  z = (X - min) / (max - min) * (b - a) + a
   """
   def __init__(self, feature_range: tuple[float, float] = (0.0, 1.0)) -> None:
     """
-    Initialize MinMaxScaler with desired output range.
-    :param feature_range: Tuple (a, b) defining the target range (default: (0, 1))
+    Initialize scaler.
+
+    Parameters
+    feature_range : tuple[float, float]
+
+    Raises
+    ValueError
+        If max <= min.
+
+    Time Complexity
+    O(1)
+
+    Space Complexity
+    O(1)
     """
     a, b = feature_range
     if b <= a:
@@ -84,9 +165,23 @@ class MinMaxScaler():
   
   def fit(self,X: np.ndarray) -> "MinMaxScaler":
     """
-    Compute and store min and max from training data.
-    :param X: 2D training data array of shape (n_samples, n_features).
-    :return: self
+    Compute min and max.
+
+    Parameters
+    X : np.ndarray of shape (n_samples, n_features)
+
+    Returns
+    MinMaxScaler
+
+    Raises
+    ValueError
+        If input invalid.
+
+    Time Complexity
+    O(n * d)
+
+    Space Complexity
+    O(d)
     """
     arr = _validate_array(X, name="X", check_nan=True)
     self.min_ = np.min(arr, axis=0)
@@ -98,9 +193,23 @@ class MinMaxScaler():
  
   def transform(self,X: np.ndarray) -> np.ndarray:
     """
-    Apply min-max scaling using stored min and max.
-    :param X: 2D array of shape (n_samples, n_features).
-    :return: Scaled array of same shape as X.
+    Apply scaling.
+
+    Parameters
+    X : np.ndarray of shape (n_samples, n_features)
+
+    Returns
+    np.ndarray of shape (n_samples, n_features)
+
+    Raises
+    ValueError
+        If not fitted or shape mismatch.
+
+    Time Complexity
+    O(n * d)
+
+    Space Complexity
+    O(n * d)
     """
     if self.min_ is None or self.range_ is None:
         raise ValueError("MinMaxScaler is not fitted yet. Call fit() first.")
@@ -113,9 +222,19 @@ class MinMaxScaler():
 
   def fit_transform(self,X:np.ndarray) -> np.ndarray:
     """
-    Fit to data then transform it in one step.
-    :param X: 2D training data array of shape (n_samples, n_features).
-    :return: Scaled array of same shape as X.
+    Fit and transform.
+
+    Parameters
+    X : np.ndarray of shape (n_samples, n_features)
+
+    Returns
+    np.ndarray of shape (n_samples, n_features)
+
+    Time Complexity
+    O(n * d)
+
+    Space Complexity
+    O(n * d)
     """
     X_out = self.fit(X).transform(X)
     return X_out
@@ -128,16 +247,36 @@ class OneHotEncoder():
   """
   def __init__(self) -> None:
     """
-    Initialize OneHotEncoder with no learned parameters.
+    Initialize encoder.
+
+    Time Complexity
+    O(1)
+
+    Space Complexity
+    O(1)
     """
     self.categories_ = None
 
   def fit(self, X: np.ndarray) -> "OneHotEncoder":
     """
-    Learn unique categories from training data.
-    :param X: 1D array of categorical values.
-    :return: self
-    """
+    Learn categories.
+
+    Parameters
+    X : np.ndarray of shape (n_samples,)
+
+    Returns
+    OneHotEncoder
+
+    Raises
+    ValueError
+        If empty.
+
+    Time Complexity
+    O(n log n)
+
+    Space Complexity
+    O(k)
+        """
     arr = np.asarray(X)
     if arr.size == 0:
         raise ValueError("X cannot be empty.")
@@ -146,10 +285,24 @@ class OneHotEncoder():
   
   def transform(self, X: np.ndarray) -> np.ndarray:
     """
-    Convert categories to one-hot encoded binary array.
-    :param X: 1D array of categorical values.
-    :return: 2D binary array of shape (n_samples, n_categories).
-    """
+    Encode data.
+
+    Parameters
+    X : np.ndarray of shape (n_samples,)
+
+    Returns
+    np.ndarray of shape (n_samples, n_categories)
+
+    Raises
+    ValueError
+        If not fitted.
+
+    Time Complexity
+    O(n * k)
+
+    Space Complexity
+    O(n * k)
+        """
     if self.categories_ is None:
         raise ValueError("OneHotEncoder is not fitted yet. Call fit() first.")
     arr = np.asarray(X)
@@ -158,9 +311,19 @@ class OneHotEncoder():
   
   def fit_transform(self, X:np.ndarray) -> np.ndarray:
     """
-    Fit to data then transform it in one step.
-    :param X: 1D array of categorical values.
-    :return: 2D binary array of shape (n_samples, n_categories).
+    Fit and transform.
+
+    Parameters
+    X : np.ndarray of shape (n_samples,)
+
+    Returns
+    np.ndarray of shape (n_samples, n_categories)
+
+    Time Complexity
+    O(n log n + n * k)
+
+    Space Complexity
+    O(n * k)
     """
     X_out = self.fit(X).transform(X)
     return X_out
@@ -175,9 +338,17 @@ class SimpleImputer():
 
   def __init__(self,strategy : str="mean", fill_value:float = 0):
     """
-    Initialize SimpleImputer with a given strategy.
-    :param strategy: Imputation strategy - 'mean', 'median', or 'constant' (default: 'mean').
-    :param fill_value: Constant value to use when strategy is 'constant' (default: 0).
+    Initialize imputer.
+
+    Parameters
+    strategy : str
+    fill_value : float
+
+    Time Complexity
+    O(1)
+
+    Space Complexity
+    O(1)
     """
     self.strategy = strategy
     self.fill_value = fill_value
@@ -185,9 +356,23 @@ class SimpleImputer():
 
   def fit(self, X: np.ndarray) -> "SimpleImputer":
     """
-    Compute and store the imputation statistic from training data.
-    :param X: 2D training data array of shape (n_samples, n_features).
-    :return: self
+    Compute imputation statistics.
+
+    Parameters
+    X : np.ndarray of shape (n_samples, n_features)
+
+    Returns
+    SimpleImputer
+
+    Raises
+    ValueError
+        If strategy invalid.
+
+    Time Complexity
+    O(n * d)
+
+    Space Complexity
+    O(d)
     """
     arr = _validate_array(X, name="X", check_nan=False)
     if self.strategy == "mean":
@@ -202,9 +387,23 @@ class SimpleImputer():
 
   def transform(self, X: np.ndarray) ->np.ndarray:
     """
-    Replace NaN values with the stored imputation statistic.
-    :param X: 2D array of shape (n_samples, n_features).
-    :return: Array of same shape as X with no NaN values.
+    Replace NaNs.
+
+    Parameters
+    X : np.ndarray of shape (n_samples, n_features)
+
+    Returns
+    np.ndarray of shape (n_samples, n_features)
+
+    Raises
+    ValueError
+        If not fitted.
+
+    Time Complexity
+    O(n * d)
+
+    Space Complexity
+    O(n * d)
     """
     if self.statistics_ is None:
             raise ValueError("SimpleImputer is not fitted yet. Call fit() first.")
@@ -214,9 +413,19 @@ class SimpleImputer():
   
   def fit_transform(self, X:np.ndarray) ->np.ndarray:
     """
-    Fit to data then transform it in one step.
-    :param X: 2D training data array of shape (n_samples, n_features).
-    :return: Array of same shape as X with no NaN values.
+    Fit and transform.
+
+    Parameters
+    X : np.ndarray of shape (n_samples, n_features)
+
+    Returns
+    np.ndarray of shape (n_samples, n_features)
+
+    Time Complexity
+    O(n * d)
+
+    Space Complexity
+    O(n * d)
     """
     X_out  = self.fit(X).transform(X)
     return X_out
